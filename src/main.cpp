@@ -2,13 +2,17 @@
 
 // https://github.com/contrem/arduino-timer
 #include <arduino-timer.h>
+#include <Wire.h>
+#include "soil-mositure.h"
 
 #define LIGHT_SENSE_PIN     A3
 #define SOIL_MOIS_SENSE_PIN A0
 #define SENSE_3V3_PIN       A2
 #define UV_SENSE_PIN        A1
 
-#define EN_SOIL_MOIS  3
+#define EN_SOIL_MOIS_PIN  3
+
+#define RTC_ADDR  0b11011111
 
 bool isSoilEn = false;
 
@@ -25,32 +29,39 @@ uint16_t measure_light(void);
 //UV Sensor
 float measure_uv_intensity(void);
 
+//RTC Commands
+bool rtc_check_conn(void);
+void rtc_read_reg(void);
+void rtc_write_reg(void);
+
+SoilMositure* yl69 = new SoilMositure(EN_SOIL_MOIS_PIN, SOIL_MOIS_SENSE_PIN, 0);
+
 void setup() {
   // put your setup code here, to run once:
   pinMode(LIGHT_SENSE_PIN, INPUT);
-  pinMode(SOIL_MOIS_SENSE_PIN, INPUT);
   pinMode(SENSE_3V3_PIN, INPUT);
   pinMode(UV_SENSE_PIN, INPUT);
 
-  pinMode(EN_SOIL_MOIS, OUTPUT);
-
   Serial.begin(9600);
-
+  Wire.begin();
+  Wire.setClock(100000);
+  delay(100);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
 
-  enable_soil_sense();
+  yl69->enable_sensor();
   delay(5000);
+
   Serial.print("SOIL: ");
-  Serial.println(measure_soil_sense());
+  Serial.println(yl69->read_mositure());
   Serial.print("LIGHT: ");
   Serial.println(measure_light());
   Serial.print("UV: ");
   Serial.println(measure_uv_intensity());
-  disable_soil_sense();
-  delay(1000);
+  yl69->disable_sensor();
+  delay(5000);
 }
 
 
@@ -61,7 +72,7 @@ void enable_soil_sense(void)
   {}
   else
   {
-    digitalWrite(EN_SOIL_MOIS, HIGH);
+    digitalWrite(EN_SOIL_MOIS_PIN, HIGH);
     isSoilEn = true;
   }
 
@@ -84,7 +95,7 @@ void disable_soil_sense(void)
   {}
   else
   {
-    digitalWrite(EN_SOIL_MOIS, LOW);
+    digitalWrite(EN_SOIL_MOIS_PIN, LOW);
     isSoilEn = false;
   }
 }
