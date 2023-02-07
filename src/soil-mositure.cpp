@@ -26,7 +26,7 @@ void SoilMositure::enable_sensor()
 {
     if(!isEnabled)
     {
-        digitalWrite(_analog_pin, HIGH);
+        digitalWrite(_en_pin, HIGH);
         isEnabled = true;
     }
 }
@@ -35,7 +35,7 @@ void SoilMositure::disable_sensor()
 {
     if(isEnabled)
     {
-        digitalWrite(_analog_pin, LOW);
+        digitalWrite(_en_pin, LOW);
         isEnabled = false;
     }
 }
